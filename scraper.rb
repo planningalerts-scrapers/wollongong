@@ -1,13 +1,20 @@
-require 'scraper'
+require "mechanize"
+require 'scraperwiki'
 
 # This is using the ePathway system.
 
-class WollongongScraper < Scraper
+class WollongongScraper
+  attr_reader :agent
+
+  def initialize
+    @agent = Mechanize.new
+  end
+
   def extract_urls_from_page(page)
     content = page.at('table.ContentPanel')
     if content
       content.search('tr')[1..-1].map do |app|
-        extract_relative_url(app.search('td')[0])
+        (page.uri + app.search('td')[0].at('a')["href"]).to_s
       end
     else
       []
@@ -53,7 +60,7 @@ class WollongongScraper < Scraper
     field.search('td')[1].inner_text.strip
   end
 
-  def applications(date)
+  def applications
     urls.map do |url|
       # Get application page with a referrer or we get an error page
       page = agent.get(url, [], URI.parse(enquiry_url))
@@ -61,8 +68,9 @@ class WollongongScraper < Scraper
       table = page.search('table#ctl00_MainBodyContent_DynamicTable > tr')[0].search('td')[0].search('table')[2]
 
       date_received = extract_field(table.search('tr')[0], "Lodgement Date")
+      day, month, year = date_received.split("/").map{|s| s.to_i}
       application_id = extract_field(table.search('tr')[2], "Application Number")
-      description = simplify_whitespace(extract_field(table.search('tr')[3], "Proposal"))
+      description = extract_field(table.search('tr')[3], "Proposal").squeeze(" ").strip
 
       table = page.search('table#ctl00_MainBodyContent_DynamicTable > tr')[2].search('td')[0].search('table')[2]
       rows = table.search('tr')[0].search('table > tr')[1..-1]
@@ -73,13 +81,18 @@ class WollongongScraper < Scraper
       else
         addresses = []
       end
-      DevelopmentApplication.new(
-        :date_received => date_received,
-        :application_id => application_id,
-        :description => description,
-        :addresses => addresses,
-        :info_url => enquiry_url,
-        :comment_url => enquiry_url)
+      record = {
+        "date_received" => Date.new(year, month, day).to_s,
+        "council_reference" => application_id,
+        "description" => description,
+        "address" => addresses[0],
+        "info_url" => enquiry_url,
+        "comment_url" => enquiry_url,
+        "date_scraped" => Date.today.to_s
+      }
+      p record
     end
   end
 end
+
+WollongongScraper.new.applications
