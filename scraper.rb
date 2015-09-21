@@ -32,7 +32,7 @@ class WollongongScraper
     page = agent.get(enquiry_url)
     form = page.forms.first
     form.radiobuttons[0].click
-    page = form.submit(form.button_with(:value => /Next/))
+    page = form.submit(form.button_with(:value => /Save and Continue/))
 
     page_label = page.at('span#ctl00_MainBodyContent_mPageNumberLabel')
     if page_label.nil?
