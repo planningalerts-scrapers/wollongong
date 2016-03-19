@@ -34,7 +34,7 @@ class WollongongScraper
     form.radiobuttons[0].click
     page = form.submit(form.button_with(:value => /Save and Continue/))
 
-    page_label = page.at('span#ctl00_MainBodyContent_mPageNumberLabel')
+    page_label = page.at('#ctl00_MainBodyContent_mPagingControl_pageNumberLabel')
     if page_label.nil?
       # If we can't find the label assume there is only one page of results
       number_of_pages = 1
@@ -64,15 +64,14 @@ class WollongongScraper
     urls.map do |url|
       # Get application page with a referrer or we get an error page
       page = agent.get(url, [], URI.parse(enquiry_url))
-
-      table = page.search('table#ctl00_MainBodyContent_DynamicTable > tr')[0].search('td')[0].search('table')[2]
+      table = page.search('#ctl00_MainBodyContent_DynamicTable > tr')[0].search('td')[0].search('table').last
 
       date_received = extract_field(table.search('tr')[0], "Lodgement Date")
       day, month, year = date_received.split("/").map{|s| s.to_i}
       application_id = extract_field(table.search('tr')[2], "Application Number")
       description = extract_field(table.search('tr')[3], "Proposal").squeeze(" ").strip
 
-      table = page.search('table#ctl00_MainBodyContent_DynamicTable > tr')[2].search('td')[0].search('table')[2]
+      table = page.search('table#ctl00_MainBodyContent_DynamicTable > tr')[2].search('td')[0].search('table').last
       rows = table.search('tr')[0].search('table > tr')[1..-1]
       if rows
         addresses = rows.map do |a|
