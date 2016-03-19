@@ -72,19 +72,13 @@ class WollongongScraper
       description = extract_field(table.search('tr')[3], "Proposal").squeeze(" ").strip
 
       table = page.search('table#ctl00_MainBodyContent_DynamicTable > tr')[2].search('td')[0].search('table').last
-      rows = table.search('tr')[0].search('table > tr')[1..-1]
-      if rows
-        addresses = rows.map do |a|
-          a.search('td')[0].inner_text.strip.gsub('  ', ' ')
-        end
-      else
-        addresses = []
-      end
+      address = table.search(:tr)[1].at(:td).inner_text
+
       record = {
         "date_received" => Date.new(year, month, day).to_s,
         "council_reference" => application_id,
         "description" => description,
-        "address" => addresses[0],
+        "address" => address,
         "info_url" => enquiry_url,
         "comment_url" => enquiry_url,
         "date_scraped" => Date.today.to_s
