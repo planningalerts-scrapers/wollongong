@@ -64,24 +64,23 @@ class WollongongScraper
     urls.map do |url|
       # Get application page with a referrer or we get an error page
       page = agent.get(url, [], URI.parse(enquiry_url))
-      table = page.search('#ctl00_MainBodyContent_DynamicTable > tr')[0].search('td')[0].search('table').last
 
-      date_received = extract_field(table.search('tr')[0], "Lodgement Date")
-      day, month, year = date_received.split("/").map{|s| s.to_i}
-      application_id = extract_field(table.search('tr')[2], "Application Number")
-      description = extract_field(table.search('tr')[3], "Proposal").squeeze(" ").strip
+      results = page.search('#ctl00_MainBodyContent_group_122').search('div.field')
 
-      table = page.search('table#ctl00_MainBodyContent_DynamicTable > tr')[2].search('td')[0].search('table').last
-      address = table.search(:tr)[1].at(:td).inner_text
+      council_reference = results.search('span[contains("Application Number")] ~ td').text
+      date_received     = Date.strptime(results.search('span[contains("Lodgement Date")] ~ td').text, '%d/%m/%Y').to_s
+      description       = results.search('span[contains("Proposal")] ~ td').text
+
+      address = page.search('#ctl00_MainBodyContent_group_124').search('tr.ContentPanel').search('span.ContentText')[0].text.strip
 
       record = {
-        "date_received" => Date.new(year, month, day).to_s,
-        "council_reference" => application_id,
-        "description" => description,
+        "council_reference" => council_reference,
         "address" => address,
+        "description" => description,
         "info_url" => enquiry_url,
-        "comment_url" => enquiry_url,
-        "date_scraped" => Date.today.to_s
+        "comment_url" => 'council@wollongong.nsw.gov.au',
+        "date_scraped" => Date.today.to_s,
+        "date_received" => date_received
       }
       #p record
       if (ScraperWiki.select("* from data where `council_reference`='#{record['council_reference']}'").empty? rescue true)
