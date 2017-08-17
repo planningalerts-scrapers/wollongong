@@ -55,11 +55,6 @@ class WollongongScraper
     urls
   end
 
-  def extract_field(field, label)
-    raise "unexpected form" unless field.search('td')[0].inner_text == label
-    field.search('td')[1].inner_text.strip
-  end
-
   def applications
     urls.map do |url|
       # Get application page with a referrer or we get an error page
