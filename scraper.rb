@@ -73,7 +73,6 @@ class WollongongScraper
         "address" => address,
         "description" => description,
         "info_url" => enquiry_url,
-        "comment_url" => 'mailto:council@wollongong.nsw.gov.au',
         "date_scraped" => Date.today.to_s,
         "date_received" => date_received
       }
