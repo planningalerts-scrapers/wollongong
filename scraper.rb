@@ -54,7 +54,7 @@ class WollongongScraper
     urls
   end
 
-  def applications
+  def applications(scraper)
     urls.map do |url|
       # Get application page with a referrer or we get an error page
       page = agent.get(url, [], URI.parse(enquiry_url))
@@ -65,7 +65,7 @@ class WollongongScraper
         "council_reference" => data[:council_reference],
         "address" => data[:address],
         "description" => data[:description],
-        "info_url" => enquiry_url,
+        "info_url" => scraper.base_url,
         "date_scraped" => Date.today.to_s,
         "date_received" => data[:date_received],
         "on_notice_from" => data[:on_notice_from],
@@ -81,4 +81,4 @@ scraper = EpathwayScraper::Scraper.new(
   "http://epathway.wollongong.nsw.gov.au/ePathway/Production"
 )
 
-WollongongScraper.new.applications
+WollongongScraper.new.applications(scraper)
