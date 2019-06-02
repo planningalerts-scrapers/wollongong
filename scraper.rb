@@ -9,28 +9,15 @@ class WollongongScraper
     @agent = Mechanize.new
   end
 
-  # The main url for the planning system which can be reached directly without getting a stupid session timed out error
-  def enquiry_url
-    "http://epathway.wollongong.nsw.gov.au/ePathway/Production/Web/GeneralEnquiry/EnquiryLists.aspx"
-  end
-
   # Returns a list of URLs for all the applications on exhibition
   def urls(scraper)
     # Get the main page and ask for the list of DAs on exhibition
     page = agent.get(scraper.base_url)
-    form = page.forms.first
-    form.radiobuttons[0].click
-    page = form.submit(form.button_with(:value => /Save and Continue/))
 
-    page_label = page.at('#ctl00_MainBodyContent_mPagingControl_pageNumberLabel')
-    if page_label.nil?
-      # If we can't find the label assume there is only one page of results
-      number_of_pages = 1
-    elsif page_label.inner_text =~ /Page \d+ of (\d+)/
-      number_of_pages = $~[1].to_i
-    else
-      raise "Unexpected form for number of pages"
-    end
+    page = EpathwayScraper::Page::ListSelect.pick(page, :advertising)
+
+    number_of_pages = EpathwayScraper::Page::Index.extract_total_number_of_pages(page)
+
     urls = []
     (1..number_of_pages).each do |page_no|
       # Don't refetch the first page
@@ -47,7 +34,7 @@ class WollongongScraper
   def applications(scraper)
     urls(scraper).map do |url|
       # Get application page with a referrer or we get an error page
-      page = agent.get(url, [], URI.parse(enquiry_url))
+      page = agent.get(url, [], URI.parse(scraper.base_url))
 
       data = EpathwayScraper::Page::Detail.scrape(page)
 
