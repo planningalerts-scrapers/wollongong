@@ -1,5 +1,4 @@
-require "mechanize"
-require 'scraperwiki'
+require "epathway_scraper"
 
 # This is using the ePathway system.
 
@@ -76,11 +75,14 @@ class WollongongScraper
         "date_scraped" => Date.today.to_s,
         "date_received" => date_received
       }
-      #p record
-      puts "Saving record " + record['council_reference'] + " - " + record['address']
-      ScraperWiki.save_sqlite(['council_reference'], record)
+
+      EpathwayScraper.save(record)
     end
   end
 end
+
+scraper = EpathwayScraper::Scraper.new(
+  "http://epathway.wollongong.nsw.gov.au/ePathway/Production"
+)
 
 WollongongScraper.new.applications
