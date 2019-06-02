@@ -59,21 +59,15 @@ class WollongongScraper
       # Get application page with a referrer or we get an error page
       page = agent.get(url, [], URI.parse(enquiry_url))
 
-      results = page.search('#ctl00_MainBodyContent_group_122').search('div.field')
-
-      council_reference = results.search('span[contains("Application Number")] ~ td').text
-      date_received     = Date.strptime(results.search('span[contains("Lodgement Date")] ~ td').text, '%d/%m/%Y').to_s
-      description       = results.search('span[contains("Proposal")] ~ td').text
-
-      address = page.search('#ctl00_MainBodyContent_group_124').search('tr.ContentPanel').search('span.ContentText')[0].text.strip
+      data = EpathwayScraper::Page::Detail.scrape(page)
 
       record = {
-        "council_reference" => council_reference,
-        "address" => address,
-        "description" => description,
+        "council_reference" => data[:council_reference],
+        "address" => data[:address],
+        "description" => data[:description],
         "info_url" => enquiry_url,
         "date_scraped" => Date.today.to_s,
-        "date_received" => date_received
+        "date_received" => data[:date_received]
       }
 
       EpathwayScraper.save(record)
