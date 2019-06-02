@@ -9,17 +9,6 @@ class WollongongScraper
     @agent = Mechanize.new
   end
 
-  def extract_urls_from_page(page)
-    content = page.at('table.ContentPanel')
-    if content
-      content.search('tr')[1..-1].map do |app|
-        (page.uri + app.search('td')[0].at('a')["href"]).to_s
-      end
-    else
-      []
-    end
-  end
-
   # The main url for the planning system which can be reached directly without getting a stupid session timed out error
   def enquiry_url
     "http://epathway.wollongong.nsw.gov.au/ePathway/Production/Web/GeneralEnquiry/EnquiryLists.aspx"
@@ -48,8 +37,9 @@ class WollongongScraper
       if page_no > 1
         page = agent.get("http://epathway.wollongong.nsw.gov.au/ePathway/Production/Web/GeneralEnquiry/EnquirySummaryView.aspx?PageNumber=#{page_no}")
       end
+      content = page.at('table.ContentPanel')
       # Get a list of urls on this page
-      urls += extract_urls_from_page(page)
+      urls += EpathwayScraper::Table.extract_table_data_and_urls(content).map { |r| r[:url] }
     end
     urls
   end
