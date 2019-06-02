@@ -15,9 +15,9 @@ class WollongongScraper
   end
 
   # Returns a list of URLs for all the applications on exhibition
-  def urls
+  def urls(scraper)
     # Get the main page and ask for the list of DAs on exhibition
-    page = agent.get(enquiry_url)
+    page = agent.get(scraper.base_url)
     form = page.forms.first
     form.radiobuttons[0].click
     page = form.submit(form.button_with(:value => /Save and Continue/))
@@ -45,7 +45,7 @@ class WollongongScraper
   end
 
   def applications(scraper)
-    urls.map do |url|
+    urls(scraper).map do |url|
       # Get application page with a referrer or we get an error page
       page = agent.get(url, [], URI.parse(enquiry_url))
 
