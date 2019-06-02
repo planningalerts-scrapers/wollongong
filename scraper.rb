@@ -67,7 +67,9 @@ class WollongongScraper
         "description" => data[:description],
         "info_url" => enquiry_url,
         "date_scraped" => Date.today.to_s,
-        "date_received" => data[:date_received]
+        "date_received" => data[:date_received],
+        "on_notice_from" => data[:on_notice_from],
+        "on_notice_to" => data[:on_notice_to]
       }
 
       EpathwayScraper.save(record)
